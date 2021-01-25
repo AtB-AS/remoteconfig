@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/atb-as/remoteconfig"
@@ -38,17 +38,17 @@ func main() {
 	}
 	serviceAccountKey = c
 
-	var params map[string]string
-	if err := json.NewDecoder(os.Stdin).Decode(&params); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeout)*(time.Second))
 	defer cancel()
 	client := remoteconfig.NewClient(ctx, *projectIDFlag, serviceAccountKey)
 
-	if err := client.SetDefaultValues(ctx, params); err != nil {
+	args := flag.Args()
+	keyvals := make([]string, 0, len(args)*2)
+	for _, arg := range args {
+		keyvals = append(keyvals, strings.SplitN(arg, "=", 2)...)
+	}
+
+	if err := client.SetDefaultValues(ctx, keyvals...); err != nil {
 		fmt.Fprintf(os.Stderr, "SetDefaultValues: %v\n", err)
 		os.Exit(1)
 	}

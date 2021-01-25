@@ -33,9 +33,9 @@ func NewClient(ctx context.Context, projectID string, credentials []byte) *Clien
 }
 
 // SetDefaultValues updates the published remote config's default key/value
-// pairs with the provided params. Parameters that already exist in the
+// pairs with the provided keyvals. Parameters that already exist in the
 // published remote config will be overwritten.
-func (c *Client) SetDefaultValues(ctx context.Context, params map[string]string) error {
+func (c *Client) SetDefaultValues(ctx context.Context, keyvals ...string) error {
 	config, err := c.ps.GetRemoteConfig("projects/" + c.projectID).Context(ctx).Do()
 	if err != nil {
 		return err
@@ -46,10 +46,10 @@ func (c *Client) SetDefaultValues(ctx context.Context, params map[string]string)
 		Parameters: config.Parameters,
 	}
 
-	for k, v := range params {
-		update.Parameters[k] = rc.RemoteConfigParameter{
+	for i, j := 0, 1; j < len(keyvals); i, j = i+2, j+2 {
+		update.Parameters[keyvals[i]] = rc.RemoteConfigParameter{
 			DefaultValue: &rc.RemoteConfigParameterValue{
-				Value: v,
+				Value: keyvals[j],
 			},
 		}
 	}
